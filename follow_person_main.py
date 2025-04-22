@@ -73,7 +73,7 @@ def track():
 
             lidar_on_target = vision.point_in_rectangle(image_center,person_to_track.Left, person_to_track.Right, person_to_track.Top, person_to_track.Bottom) #check if lidar is pointed on target
 
-            lidar_dist = obstacles.py.read_distance() # get lidar distance in meter
+            lidar_dist = obstacles.read_distance() # get lidar distance in meter
             
             MA_Z.append(lidar_dist)
             MA_X.append(x_delta)
