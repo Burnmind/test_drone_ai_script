@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 import pyrealsense2 as rs
 
-debug = True
+debug = False
 
 pipeline = rs.pipeline()
 config = rs.config()
@@ -31,6 +31,8 @@ hole_filling = rs.hole_filling_filter()
 
 previous_zDepth = 1
 
+for i in range(10):
+    frames = pipeline.wait_for_frames()
 
 def read_distance():
     """ Функция для определения расстояния до препятствия в центре кадра
@@ -67,8 +69,10 @@ def read_distance():
 
     global previous_zDepth
     zDepth = aligned_depth_frame.get_distance(center_x, center_y) / depth_scale / 1000
+
     if zDepth == 0:
         zDepth = previous_zDepth
+
     if debug:
         cv.putText(color_image, f"{zDepth} ({center_x},{center_y})", (center_x, center_y),
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1,
