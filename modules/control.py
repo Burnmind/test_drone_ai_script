@@ -1,4 +1,4 @@
-from modules import drone
+import drone
 from simple_pid import PID
 
 USE_PID_YAW = True
@@ -124,3 +124,4 @@ def stop_drone():
     drone.send_movement_command_YAW(0)
     drone.send_movement_command_XYA(0, 0,flight_altitude)
     
+connect_drone('/dev/serial/by-id/usb-ArduPilot_speedybeef4v4_3D002E000C51333137383439-if00')

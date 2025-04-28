@@ -1,47 +1,47 @@
-import serial,time
-import numpy as np
+import board
+import busio
+import adafruit_vl53l0x
 
-#https://www.robotshop.com/media/files/content/b/ben/pdf/tf-luna-8m-lidar-distance-sensor-instructions-manual.pdf
-ser = None 
+vl53 = None
+dist_filtered = 0
 
-def connect_lidar(serialString):
-    global ser
-    ser = serial.Serial(serialString, 115200,timeout=0) 
-    if ser.isOpen() == False:
-        ser.open() 
-        return "succes"
-    else:
-        return "port already open"
-
-def disconnect_lidar():
-    global ser
-    ser.close()
-
-def check_connection():
-    global ser
-    return ser.isOpen()
+def connect_lidar():
+    global vl53
+    i2c = busio.I2C(board.SCL, board.SDA)
+    vl53 = adafruit_vl53l0x.VL53L0X(i2c)
+    vl53.signal_rate_limit = 0.1
+    vl53._write_u8(adafruit_vl53l0x._PRE_RANGE_CONFIG_VCSEL_PERIOD, 18)
+    vl53._write_u8(adafruit_vl53l0x._FINAL_RANGE_CONFIG_VCSEL_PERIOD, 14)
+    # vl53.measurement_timing_budget = 200000
 
 def read_lidar_distance():
-    global ser
-    while True:
-        counter = ser.in_waiting 
-        if counter > 6:
-            bytes_serial = ser.read(7) 
-            ser.reset_input_buffer() 
-            if bytes_serial[0] == 0x59 and bytes_serial[1] == 0x59: 
-                distance = bytes_serial[2] + bytes_serial[3]*256 
-                strength = bytes_serial[4] + bytes_serial[5]*256 
-                return distance/100.0,strength
+    global vl53
+    global dist_filtered
+    a = vl53.range
+    b = vl53.range
+    c = vl53.range
+    if a <= b and a <= c:
+        middle = c
+        if b <= c:
+            middle = b
+    else:
+        if b <= a and b <= c:
+            middle = c
+            if a <= c:
+                middle = a
+        else:
+            middle = b
+            if a <= b:
+                middle = a
 
-def read_lidar_temperature():
-    global ser
-    while True:
-        counter = ser.in_waiting 
-        if counter > 8:
-            bytes_serial = ser.read(9) 
-            ser.reset_input_buffer() 
+    delta = abs(dist_filtered - middle)
+    if delta > 100:
+        k = 0.7
+    else:
+        k = 0.1
 
-            if bytes_serial[0] == 0x59 and bytes_serial[1] == 0x59: 
-                temperature = bytes_serial[6] + bytes_serial[7]*256 
-                temperature = (temperature/8.0) - 256.0 
-                return temperature
+    dist_filtered = round(middle * k + dist_filtered * (1 - k))
+    if dist_filtered > 2000:
+        dist_filtered = 2000
+
+    return dist_filtered / 1000

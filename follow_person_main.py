@@ -5,8 +5,8 @@ sys.path.insert(1, 'modules')
 import cv2
 import collections
 
-import modules.obstacles as obstacles
-import modules.detector_mobilenet as detector
+# import modules.lidar as lidar
+import modules.detector as detector
 import modules.vision as vision
 import modules.control as control
 import keyboard
@@ -19,7 +19,7 @@ parser.add_argument('--control', type=str, default='PID', help='Use PID or P con
 args = parser.parse_args()
 
 # config
-MAX_FOLLOW_DIST = 2                          #meter
+MAX_FOLLOW_DIST = 1.5                           #meter
 MAX_ALT =  1.5                                  #m
 MAX_MA_X_LEN = 5
 MAX_MA_Z_LEN = 5
@@ -31,16 +31,12 @@ STATE = "takeoff"                               # takeoff land track search
 def setup():
     print("setting up detector")
     detector.initialize_detector()
+    # lidar.connect_lidar()
 
     print("connecting to drone")
-    if args.mode == "flight":
-        print("MODE = flight")
-        control.connect_drone('/dev/ttyACM0')
-    else:
-        print("MODE = test")
-        control.connect_drone('127.0.0.1:14551')
-    
-    control.set_flight_altitude(MAX_ALT) #new never tested!
+    control.connect_drone('/dev/serial/by-id/usb-ArduPilot_speedybeef4v4_3D002E000C51333137383439-if00')
+
+    control.set_flight_altitude(MAX_ALT)
 
 setup()
 
@@ -73,7 +69,8 @@ def track():
 
             lidar_on_target = vision.point_in_rectangle(image_center,person_to_track.Left, person_to_track.Right, person_to_track.Top, person_to_track.Bottom) #check if lidar is pointed on target
 
-            lidar_dist = obstacles.read_distance() # get lidar distance in meter
+            # lidar_dist = lidar.read_lidar_distance()
+            lidar_dist = MAX_FOLLOW_DIST
             
             MA_Z.append(lidar_dist)
             MA_X.append(x_delta)
@@ -103,7 +100,7 @@ def track():
 def search():
     print("State is SEARCH -> " + STATE)
     start = time.time()
-    
+
     control.stop_drone()
     while time.time() - start < 40:
         if keyboard.is_pressed('q'):  # if key 'q' is pressed 

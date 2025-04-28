@@ -1,15 +1,42 @@
-import sys
-sys.path.insert(1, 'modules')
+import board
+import busio
 
-import lidar
+import adafruit_vl53l0x
 
-print(lidar.connect_lidar("/dev/ttyTHS1"))
 
-print(lidar.check_connection())
+i2c = busio.I2C(board.SCL, board.SDA)
+vl53 = adafruit_vl53l0x.VL53L0X(i2c)
+#vl53.measurement_timing_budget = 200000
 
-print(lidar.read_lidar_distance())
-print(lidar.read_lidar_temperature())
+dist_filtered = 0
 
-lidar.disconnect_lidar()
+print("Range: {0}mm".format(vl53.range))
 
-print(lidar.check_connection())
+
+a = vl53.range
+b = vl53.range
+c = vl53.range
+if a <= b and a <= c:
+    middle = c
+    if b <= c:
+        middle = b
+else:
+    if b <= a and b <= c:
+        middle = c
+        if a <= c:
+            middle = a
+    else:
+        middle = b
+        if a <= b:
+            middle = a
+
+delta = abs(dist_filtered - middle)
+if delta > 100:
+    k = 0.7
+else:
+    k = 0.1
+
+dist_filtered = round(middle * k + dist_filtered * (1 - k))
+
+print("Range: {0}mm".format(dist_filtered))
+

@@ -2,8 +2,7 @@ from dronekit import *
 
 vehicle = None 
 
-# Connect to the Vehicle (in this case a UDP endpoint)
-def connect_drone(connection_string, waitready=True, baudrate=57600):
+def connect_drone(connection_string, waitready=True, baudrate=115200):
     global vehicle
     if vehicle == None:
         vehicle = connect(connection_string, wait_ready=waitready, baud=baudrate)
@@ -211,4 +210,3 @@ def send_movement_command_XYA(velocity_x, velocity_y, altitude):
 
     vehicle.send_mavlink(msg)
     #Vehicle.commands.flush()
-

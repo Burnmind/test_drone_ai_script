@@ -1,7 +1,7 @@
 import sys, time
 sys.path.insert(1, 'modules')
 
-import drone
+import modules.drone as drone
 
 #config 
 height = 10

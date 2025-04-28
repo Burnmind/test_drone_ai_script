@@ -1,8 +1,6 @@
-numpy~=2.2.4
+numpy==1.26.4
 opencv-python==4.11.0.86
-pyrealsense2==2.55.1.6486
-PyWavefront==1.3.3
 scipy==1.15.2
 keyboard
-jetson
 simple_pid
+dronekit
